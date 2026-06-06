@@ -1,0 +1,6 @@
+{
+  "name": "Data Reconciliation App",
+  "description": "A full-stack spreadsheet auditing and reconciliation system with custom primary key selection, interactive analytics, and automatic database retention rules.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
