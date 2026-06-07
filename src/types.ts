@@ -64,6 +64,8 @@ export interface ReconciliationReport {
     missingInACount: number;
     missingInBCount: number;
     dataHealthScore: number;
+    datasetARecordsCount: number;
+    datasetBRecordsCount: number;
   };
   exactMatches: ExactMatchRow[];
   discrepancies: DiscrepancyRow[];

@@ -248,7 +248,9 @@ app.post('/api/reconcile/run', async (req, res) => {
         discrepanciesCount: discrepancies.length,
         missingInACount: missingInA.length,
         missingInBCount: missingInB.length,
-        dataHealthScore
+        dataHealthScore,
+        datasetARecordsCount: datasetA.length,
+        datasetBRecordsCount: datasetB.length
       },
       exactMatches,
       discrepancies,

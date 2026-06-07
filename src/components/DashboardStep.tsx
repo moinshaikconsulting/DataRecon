@@ -44,6 +44,7 @@ export default function DashboardStep({ report, onRestart }: DashboardStepProps)
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [expandedRowId, setExpandedRowId] = useState<string | null>(null);
 
   // Recharts Pie/Donut Data Compilation
   const pieData = useMemo(() => {
@@ -260,70 +261,120 @@ export default function DashboardStep({ report, onRestart }: DashboardStepProps)
       </div>
 
       {/* KPI METRICS SHELF */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         
         {/* KPI 1: Data Health Score */}
-        <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:scale-[1.01] hover:shadow-md transition-all flex items-center gap-4 relative overflow-hidden">
-          <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-            <Award className="w-6 h-6" />
+        <div className="bg-white border border-slate-100 p-4.5 rounded-2xl shadow-sm hover:scale-[1.01] hover:shadow-md transition-all flex items-center gap-3 relative overflow-hidden">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <Award className="w-5 h-5" />
           </div>
-          <div className="space-y-0.5">
-            <span className="text-xs font-medium text-slate-400 block tracking-wide uppercase">Match Integrity</span>
-            <span className="text-2xl font-bold text-slate-800 font-mono tracking-tight shrink-0">
+          <div className="space-y-0.5 min-w-0">
+            <span className="text-[10px] font-bold text-slate-400 block tracking-wide uppercase">Match Rate</span>
+            <span className="text-xl font-black text-slate-800 font-mono tracking-tight block">
               {report.stats.dataHealthScore}%
             </span>
           </div>
-          {/* subtle accent background arc matching progress */}
           <div className="absolute right-0 bottom-0 translate-x-3 translate-y-3 opacity-5 pointer-events-none">
-            <Award className="w-24 h-24 text-blue-600" />
+            <Award className="w-16 h-16 text-blue-600" />
           </div>
         </div>
 
-        {/* KPI 2: Total records key depth */}
-        <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:scale-[1.01] hover:shadow-md transition-all flex items-center gap-4 relative overflow-hidden">
-          <div className="w-12 h-12 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center shrink-0">
-            <Layers className="w-6 h-6" />
+        {/* KPI 2: Dataset A Count */}
+        <div className="bg-white border border-slate-100 p-4.5 rounded-2xl shadow-sm hover:scale-[1.01] hover:shadow-md transition-all flex items-center gap-3 relative overflow-hidden" title={`File A: ${report.fileAName}`}>
+          <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+            <FileSpreadsheet className="w-5 h-5" />
           </div>
-          <div className="space-y-0.5">
-            <span className="text-xs font-medium text-slate-400 block tracking-wide uppercase">Total Records</span>
-            <span className="text-2xl font-bold text-slate-800 font-mono tracking-tight shrink-0">
+          <div className="space-y-0.5 min-w-0">
+            <span className="text-[10px] font-bold text-slate-400 block tracking-wide uppercase truncate" title={`Dataset A Size: ${report.fileAName}`}>
+              Dataset A Size
+            </span>
+            <span className="text-xl font-black text-teal-700 font-mono tracking-tight block">
+              {(report.stats.datasetARecordsCount ?? report.exactMatches.length + report.discrepancies.length + report.missingInB.length).toLocaleString()}
+            </span>
+            <span className="text-[9px] text-slate-400 block truncate" style={{ maxWidth: '100%' }}>
+              {report.fileAName}
+            </span>
+          </div>
+          <div className="absolute right-0 bottom-0 translate-x-3 translate-y-3 opacity-5 pointer-events-none">
+            <FileSpreadsheet className="w-16 h-16 text-teal-600" />
+          </div>
+        </div>
+
+        {/* KPI 3: Dataset B Count */}
+        <div className="bg-white border border-slate-100 p-4.5 rounded-2xl shadow-sm hover:scale-[1.01] hover:shadow-md transition-all flex items-center gap-3 relative overflow-hidden" title={`File B: ${report.fileBName}`}>
+          <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <FileSpreadsheet className="w-5 h-5" />
+          </div>
+          <div className="space-y-0.5 min-w-0">
+            <span className="text-[10px] font-bold text-slate-400 block tracking-wide uppercase truncate" title={`Dataset B Size: ${report.fileBName}`}>
+              Dataset B Size
+            </span>
+            <span className="text-xl font-black text-indigo-700 font-mono tracking-tight block">
+              {(report.stats.datasetBRecordsCount ?? report.exactMatches.length + report.discrepancies.length + report.missingInA.length).toLocaleString()}
+            </span>
+            <span className="text-[9px] text-slate-400 block truncate" style={{ maxWidth: '100%' }}>
+              {report.fileBName}
+            </span>
+          </div>
+          <div className="absolute right-0 bottom-0 translate-x-3 translate-y-3 opacity-5 pointer-events-none">
+            <FileSpreadsheet className="w-16 h-16 text-indigo-600" />
+          </div>
+        </div>
+
+        {/* KPI 4: Total records key depth */}
+        <div className="bg-white border border-slate-100 p-4.5 rounded-2xl shadow-sm hover:scale-[1.01] hover:shadow-md transition-all flex items-center gap-3 relative overflow-hidden">
+          <div className="w-10 h-10 rounded-xl bg-slate-50 text-slate-500 flex items-center justify-center shrink-0">
+            <Layers className="w-5 h-5" />
+          </div>
+          <div className="space-y-0.5 min-w-0">
+            <span className="text-[10px] font-bold text-slate-400 block tracking-wide uppercase/n">Processed rows</span>
+            <span className="text-xl font-black text-slate-800 font-mono tracking-tight block">
               {report.stats.totalRecordsProcessed.toLocaleString()}
             </span>
+            <span className="text-[9px] text-slate-400 block">
+              Combined records
+            </span>
           </div>
           <div className="absolute right-0 bottom-0 translate-x-3 translate-y-3 opacity-5 pointer-events-none">
-            <Layers className="w-24 h-24 text-slate-600" />
+            <Layers className="w-16 h-16 text-slate-600" />
           </div>
         </div>
 
-        {/* KPI 3: Perfect exact match counts */}
-        <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:scale-[1.01] hover:shadow-md transition-all flex items-center gap-4 relative overflow-hidden">
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-6 h-6" />
+        {/* KPI 5: Perfect exact match counts */}
+        <div className="bg-white border border-slate-100 p-4.5 rounded-2xl shadow-sm hover:scale-[1.01] hover:shadow-md transition-all flex items-center gap-3 relative overflow-hidden">
+          <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-5 h-5" />
           </div>
-          <div className="space-y-0.5">
-            <span className="text-xs font-medium text-slate-400 block tracking-wide uppercase">Perfect Matches</span>
-            <span className="text-2xl font-bold text-emerald-700 font-mono tracking-tight shrink-0">
+          <div className="space-y-0.5 min-w-0">
+            <span className="text-[10px] font-bold text-slate-400 block tracking-wide uppercase">Matches</span>
+            <span className="text-xl font-black text-emerald-700 font-mono tracking-tight block">
               {report.stats.exactMatchesCount.toLocaleString()}
             </span>
-          </div>
-          <div className="absolute right-0 bottom-0 translate-x-3 translate-y-3 opacity-5 pointer-events-none">
-            <CheckCircle2 className="w-24 h-24 text-emerald-600" />
-          </div>
-        </div>
-
-        {/* KPI 4: Discrepancy counts */}
-        <div className="bg-white border border-slate-100 p-5 rounded-2xl shadow-sm hover:scale-[1.01] hover:shadow-md transition-all flex items-center gap-4 relative overflow-hidden">
-          <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
-            <AlertTriangle className="w-6 h-6" />
-          </div>
-          <div className="space-y-0.5">
-            <span className="text-xs font-medium text-slate-400 block tracking-wide uppercase">Mismatched Rows</span>
-            <span className="text-2xl font-bold text-rose-600 font-mono tracking-tight shrink-0">
-              {report.stats.discrepanciesCount.toLocaleString()}
+            <span className="text-[9px] text-slate-400 block">
+              Zero discrepancy rows
             </span>
           </div>
           <div className="absolute right-0 bottom-0 translate-x-3 translate-y-3 opacity-5 pointer-events-none">
-            <AlertTriangle className="w-24 h-24 text-rose-500" />
+            <CheckCircle2 className="w-16 h-16 text-emerald-600" />
+          </div>
+        </div>
+
+        {/* KPI 6: Discrepancy counts */}
+        <div className="bg-white border border-slate-100 p-4.5 rounded-2xl shadow-sm hover:scale-[1.01] hover:shadow-md transition-all flex items-center gap-3 relative overflow-hidden">
+          <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-500 flex items-center justify-center shrink-0">
+            <AlertTriangle className="w-5 h-5" />
+          </div>
+          <div className="space-y-0.5 min-w-0">
+            <span className="text-[10px] font-bold text-slate-400 block tracking-wide uppercase">Variances</span>
+            <span className="text-xl font-black text-rose-600 font-mono tracking-tight block">
+              {report.stats.discrepanciesCount.toLocaleString()}
+            </span>
+            <span className="text-[9px] text-slate-400 block">
+              Incompatible values
+            </span>
+          </div>
+          <div className="absolute right-0 bottom-0 translate-x-3 translate-y-3 opacity-5 pointer-events-none">
+            <AlertTriangle className="w-16 h-16 text-rose-500" />
           </div>
         </div>
 
@@ -518,87 +569,272 @@ export default function DashboardStep({ report, onRestart }: DashboardStepProps)
                 </tr>
               ) : (
                 paginatedRows.map((row) => {
+                  const isExpanded = expandedRowId === row.id;
                   return (
-                    <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
-                      {/* Column 1: Key Info */}
-                      <td className="py-4 px-5">
-                        <div className="space-y-0.5">
-                          <span className="font-mono text-slate-800 font-semibold text-xs block truncate bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md max-w-sm w-fit">
-                            {row.keyValues}
-                          </span>
-                        </div>
-                      </td>
-
-                      {/* Column 2: Status Tag */}
-                      <td className="py-4 px-5 shrink-0 align-middle">
-                        {row.type === 'match' && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                            Match
-                          </span>
-                        )}
-                        {row.type === 'discrepancy' && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-rose-100 text-rose-800 border border-rose-200">
-                            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
-                            Variance
-                          </span>
-                        )}
-                        {row.type === 'missingA' && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-indigo-100 text-indigo-800 border border-indigo-200">
-                            Omit in A
-                          </span>
-                        )}
-                        {row.type === 'missingB' && (
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-violet-100 text-violet-800 border border-violet-200">
-                            Omit in B
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Column 3: Variance / Detail transponders */}
-                      <td className="py-4 px-5 max-w-md">
-                        {row.type === 'match' && (
-                          <span className="text-slate-400">
-                            All audited properties verify identically matches across both spreadsheets.
-                          </span>
-                        )}
-                        
-                        {row.type === 'discrepancy' && row.differences && (
-                          <div className="space-y-1 bg-rose-50/20 border border-rose-100 rounded-xl p-2.5 max-w-lg">
-                            <span className="text-[10px] font-bold text-rose-700 block uppercase tracking-wide">
-                              Mismatched Column Breakdown ({row.differences.length}):
+                    <React.Fragment key={row.id}>
+                      <tr 
+                        onClick={() => setExpandedRowId(isExpanded ? null : row.id)}
+                        className={`hover:bg-slate-50/70 transition-all cursor-pointer border-b border-slate-100 last:border-0 ${
+                          isExpanded ? 'bg-slate-50/80 font-medium' : ''
+                        }`}
+                      >
+                        {/* Column 1: Key Info */}
+                        <td className="py-4 px-5">
+                          <div className="space-y-1">
+                            <span className="font-mono text-slate-800 font-bold text-xs block truncate bg-slate-100/80 border border-slate-200 px-2.5 py-1 rounded-lg w-fit shadow-xs">
+                              {row.keyValues}
                             </span>
-                            <div className="space-y-1 flex flex-col font-mono text-[11px] text-slate-600 mt-1">
-                              {row.differences.map((diff, idx) => (
-                                <div key={`diff_detail_${row.id}_${idx}`} className="flex flex-wrap items-center gap-2 border-b border-rose-50/50 pb-1 last:border-0 last:pb-0">
-                                  <span className="text-slate-800 font-semibold">{diff.column}:</span>
-                                  <span className="bg-red-50 text-rose-650 px-1 py-0.2 rounded border border-red-100">
-                                    A: {diff.valA === '' ? <em className="text-slate-350">empty</em> : String(diff.valA)}
+                            <span className="text-[9px] text-brand-600 font-medium block">
+                              {isExpanded ? 'Click to collapse details' : '⚡ Click to inspect side-by-side'}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Column 2: Status Tag */}
+                        <td className="py-4 px-5 shrink-0 align-middle">
+                          {row.type === 'match' && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                              Match
+                            </span>
+                          )}
+                          {row.type === 'discrepancy' && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-rose-100 text-rose-800 border border-rose-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+                              Variance
+                            </span>
+                          )}
+                          {row.type === 'missingA' && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-indigo-100 text-indigo-800 border border-indigo-200">
+                              Omit in A
+                            </span>
+                          )}
+                          {row.type === 'missingB' && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-violet-100 text-violet-800 border border-violet-200">
+                              Omit in B
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Column 3: Variance / Detail transponders */}
+                        <td className="py-4 px-5 max-w-md">
+                          {row.type === 'match' && (
+                            <div className="flex flex-col gap-1">
+                              <span className="text-slate-400">
+                                All audited properties verify identically matches across both spreadsheets.
+                              </span>
+                              <span className="text-[10px] text-emerald-600 font-bold">
+                                100% matched row value
+                              </span>
+                            </div>
+                          )}
+                          
+                          {row.type === 'discrepancy' && row.differences && (
+                            <div className="space-y-2">
+                              <div className="space-y-1 bg-rose-50/20 border border-rose-100 rounded-xl p-2.5 max-w-lg">
+                                <span className="text-[10px] font-bold text-rose-700 block uppercase tracking-wide">
+                                  Mismatched Column Breakdown ({row.differences.length}):
+                                </span>
+                                <div className="space-y-1 flex flex-col font-mono text-[11px] text-slate-600 mt-1">
+                                  {row.differences.map((diff, idx) => (
+                                    <div key={`diff_detail_${row.id}_${idx}`} className="flex flex-wrap items-center gap-2 border-b border-rose-50/50 pb-1 last:border-0 last:pb-0">
+                                      <span className="text-slate-850 font-bold">{diff.column}:</span>
+                                      <span className="bg-red-50 text-rose-650 px-1 py-0.2 rounded border border-red-100">
+                                        A: {diff.valA === '' ? <em className="text-slate-350">empty</em> : String(diff.valA)}
+                                      </span>
+                                      <span className="text-slate-400 text-[10px]">⇄</span>
+                                      <span className="bg-blue-50 text-blue-800 px-1 py-0.2 rounded border border-blue-100">
+                                        B: {diff.valB === '' ? <em className="text-slate-350">empty</em> : String(diff.valB)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              <span className="text-[10px] text-brand-600 font-bold flex items-center gap-1">
+                                <Sparkles className="w-3 h-3 text-brand-500 shrink-0" />
+                                Click to inspect interactive side-by-side table matrix
+                              </span>
+                            </div>
+                          )}
+
+                          {row.type === 'missingA' && (
+                            <span className="text-indigo-650 font-medium block">
+                              This primary key was not found in Dataset A. It is present exclusively in Dataset B.
+                            </span>
+                          )}
+
+                          {row.type === 'missingB' && (
+                            <span className="text-violet-650 font-medium block">
+                              This primary key was not found in Dataset B. It is present exclusively in Dataset A.
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+
+                      {/* SIDE-BY-SIDE EXPANDED DETAILS */}
+                      {isExpanded && (
+                        <tr className="bg-slate-50/50">
+                          <td colSpan={3} className="p-4 sm:p-6 border-b border-slate-100">
+                            <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-inner space-y-4">
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-xs font-black text-slate-800 tracking-tight flex items-center gap-1">
+                                    <Sparkles className="w-4 h-4 text-emerald-500 animate-pulse" />
+                                    Interactive Side-by-Side Value Inspected:
                                   </span>
-                                  <span className="text-slate-400 text-[10px]">⇄</span>
-                                  <span className="bg-blue-50 text-blue-800 px-1 py-0.2 rounded border border-blue-100">
-                                    B: {diff.valB === '' ? <em className="text-slate-350">empty</em> : String(diff.valB)}
+                                  <span className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-mono font-bold">
+                                    Key ({row.keyValues})
                                   </span>
                                 </div>
-                              ))}
+                                <button 
+                                  type="button" 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedRowId(null);
+                                  }}
+                                  className="text-slate-400 hover:text-slate-600 text-xs font-semibold cursor-pointer underline underline-offset-2"
+                                >
+                                  Collapse inspector
+                                </button>
+                              </div>
+
+                              {/* Split View */}
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                
+                                {/* PANE A: SOURCE A */}
+                                <div className="border border-slate-150 rounded-xl overflow-hidden shadow-xs bg-white">
+                                  <div className="bg-slate-50 p-2.5 px-4 border-b border-slate-150 flex items-center justify-between">
+                                    <span className="font-bold text-slate-800 text-[11px] truncate max-w-[220px]" title={report.fileAName}>
+                                      Dataset A: {report.fileAName}
+                                    </span>
+                                    <span className="px-1.5 py-0.5 text-[9px] bg-teal-100 text-teal-800 font-bold rounded uppercase">
+                                      Source A
+                                    </span>
+                                  </div>
+                                  
+                                  <div className="p-2.5 divide-y divide-slate-50 max-h-[320px] overflow-y-auto">
+                                    {!row.rowA ? (
+                                      <div className="py-12 text-center text-rose-500 font-semibold space-y-1">
+                                        <span className="text-xs font-bold block">✕ Key Omitted</span>
+                                        <p className="text-[10px] text-slate-400 font-normal">This record is completely missing from Dataset A.</p>
+                                      </div>
+                                    ) : (
+                                      Array.from(new Set([
+                                        ...Object.keys(row.rowA), 
+                                        ...(row.rowB ? Object.keys(row.rowB) : [])
+                                      ])).map((key) => {
+                                        const valA = row.rowA ? row.rowA[key] : undefined;
+                                        const isPrimaryKey = report.keysA.includes(key);
+                                        const isMismatched = row.type === 'discrepancy' && row.differences?.some(d => d.column === key);
+                                        
+                                        return (
+                                          <div 
+                                            key={`inspect_cell_A_${row.id}_${key}`} 
+                                            className={`py-2 px-3 flex items-start justify-between gap-4 text-xs transition-colors ${
+                                              isMismatched 
+                                                ? 'bg-rose-50/60 border-l-3 border-rose-500 font-medium' 
+                                                : isPrimaryKey 
+                                                  ? 'bg-amber-50/50 border-l-3 border-amber-500 font-medium' 
+                                                  : 'hover:bg-slate-50/45'
+                                            }`}
+                                          >
+                                            <span className="font-mono text-slate-500 text-[10px] shrink-0 min-w-[120px] max-w-[160px] truncate block" title={key}>
+                                              {key} {isPrimaryKey && <span className="text-amber-500 text-[9px]" title="Composite Primary Key">🔑</span>}
+                                            </span>
+                                            <span className={`break-all text-right max-w-[200px] font-mono text-[11px] ${
+                                              isMismatched ? 'text-rose-700 font-bold' : 'text-slate-800'
+                                            }`}>
+                                              {valA === undefined ? (
+                                                <em className="text-slate-300">not a column in A</em>
+                                              ) : valA === '' ? (
+                                                <em className="text-slate-400">"" (empty)</em>
+                                              ) : (
+                                                String(valA)
+                                              )}
+                                            </span>
+                                          </div>
+                                        );
+                                      })
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* PANE B: SOURCE B */}
+                                <div className="border border-slate-150 rounded-xl overflow-hidden shadow-xs bg-white">
+                                  <div className="bg-slate-50 p-2.5 px-4 border-b border-slate-150 flex items-center justify-between">
+                                    <span className="font-bold text-slate-800 text-[11px] truncate max-w-[220px]" title={report.fileBName}>
+                                      Dataset B: {report.fileBName}
+                                    </span>
+                                    <span className="px-1.5 py-0.5 text-[9px] bg-indigo-100 text-indigo-800 font-bold rounded uppercase">
+                                      Source B
+                                    </span>
+                                  </div>
+
+                                  <div className="p-2.5 divide-y divide-slate-50 max-h-[320px] overflow-y-auto">
+                                    {!row.rowB ? (
+                                      <div className="py-12 text-center text-rose-500 font-semibold space-y-1">
+                                        <span className="text-xs font-bold block">✕ Key Omitted</span>
+                                        <p className="text-[10px] text-slate-400 font-normal">This record is completely missing from Dataset B.</p>
+                                      </div>
+                                    ) : (
+                                      Array.from(new Set([
+                                        ...(row.rowA ? Object.keys(row.rowA) : []), 
+                                        ...Object.keys(row.rowB)
+                                      ])).map((key) => {
+                                        const valB = row.rowB ? row.rowB[key] : undefined;
+                                        const isPrimaryKey = report.keysB.includes(key);
+                                        const isMismatched = row.type === 'discrepancy' && row.differences?.some(d => d.column === key);
+
+                                        return (
+                                          <div 
+                                            key={`inspect_cell_B_${row.id}_${key}`} 
+                                            className={`py-2 px-3 flex items-start justify-between gap-4 text-xs transition-colors ${
+                                              isMismatched 
+                                                ? 'bg-rose-50/60 border-l-3 border-rose-500 font-medium' 
+                                                : isPrimaryKey 
+                                                  ? 'bg-amber-50/50 border-l-3 border-amber-500 font-medium' 
+                                                  : 'hover:bg-slate-50/45'
+                                            }`}
+                                          >
+                                            <span className="font-mono text-slate-500 text-[10px] shrink-0 min-w-[120px] max-w-[160px] truncate block" title={key}>
+                                              {key} {isPrimaryKey && <span className="text-amber-500 text-[9px]" title="Composite Primary Key">🔑</span>}
+                                            </span>
+                                            <span className={`break-all text-right max-w-[200px] font-mono text-[11px] ${
+                                              isMismatched ? 'text-rose-700 font-bold' : 'text-slate-800'
+                                            }`}>
+                                              {valB === undefined ? (
+                                                <em className="text-slate-300">not a column in B</em>
+                                              ) : valB === '' ? (
+                                                <em className="text-slate-400">"" (empty)</em>
+                                              ) : (
+                                                String(valB)
+                                              )}
+                                            </span>
+                                          </div>
+                                        );
+                                      })
+                                    )}
+                                  </div>
+                                </div>
+
+                              </div>
+
+                              {row.type === 'discrepancy' && row.differences && (
+                                <div className="p-3 bg-rose-50 border border-rose-100/70 rounded-xl text-xs text-rose-800 flex items-start gap-1.5 font-sans shadow-xs">
+                                  <AlertTriangle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+                                  <div>
+                                    <span className="font-extrabold">Comparative Value Audit Alert:</span> 
+                                    <span className="ml-1">We located discrepancies on {row.differences.length} spreadsheet property metrics:{' '}
+                                      <strong className="font-bold underline">{row.differences.map(d => d.column).join(', ')}</strong>.
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
                             </div>
-                          </div>
-                        )}
-
-                        {row.type === 'missingA' && (
-                          <span className="text-indigo-600">
-                            This primary key was not found in Dataset A. It is present exclusively in Dataset B.
-                          </span>
-                        )}
-
-                        {row.type === 'missingB' && (
-                          <span className="text-violet-600">
-                            This primary key was not found in Dataset B. It is present exclusively in Dataset A.
-                          </span>
-                        )}
-                      </td>
-
-                    </tr>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
                   );
                 })
               )}
