@@ -39,17 +39,32 @@ let isFallbackMode = false;
 
 // Initialize Postgres connection pool
 try {
-  const pgConfig = {
-    host: process.env.PGHOST || 'localhost',
-    port: parseInt(process.env.PGPORT || '5432', 10),
-    database: process.env.PGDATABASE || 'reconciliation_db',
-    user: process.env.PGUSER || 'recon_user',
-    password: process.env.PGPASSWORD || 'secure_password',
-    connectionTimeoutMillis: 5000,
-  };
+  let poolConfig: any;
+  const connectionString = process.env.DATABASE_URL;
 
-  console.log(`Connecting to Postgres at ${pgConfig.host}:${pgConfig.port} as user ${pgConfig.user}...`);
-  pool = new Pool(pgConfig);
+  if (connectionString) {
+    console.log('Connecting to PostgreSQL using DATABASE_URL connection string...');
+    poolConfig = {
+      connectionString,
+      ssl: process.env.NODE_ENV === 'production' || connectionString.includes('sslmode=require') || connectionString.includes('render.com') || connectionString.includes('railway')
+        ? { rejectUnauthorized: false }
+        : false,
+      connectionTimeoutMillis: 7000,
+    };
+  } else {
+    const pgConfig = {
+      host: process.env.PGHOST || 'localhost',
+      port: parseInt(process.env.PGPORT || '5432', 10),
+      database: process.env.PGDATABASE || 'reconciliation_db',
+      user: process.env.PGUSER || 'recon_user',
+      password: process.env.PGPASSWORD || 'secure_password',
+      connectionTimeoutMillis: 5000,
+    };
+    console.log(`Connecting to Postgres at ${pgConfig.host}:${pgConfig.port} as user ${pgConfig.user}...`);
+    poolConfig = pgConfig;
+  }
+
+  pool = new Pool(poolConfig);
 
   // Bind an error listener to prevent idle client issues from crashing server
   pool.on('error', (err: any) => {

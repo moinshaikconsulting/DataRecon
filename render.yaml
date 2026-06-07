@@ -1,0 +1,19 @@
+# Render Blueprint Specification File for One-Click Deployments
+services:
+  - type: web
+    name: reconflow-app
+    runtime: node
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: reconflow-postgres
+          property: connectionString
+      - key: NODE_ENV
+        value: production
+
+databases:
+  - name: reconflow-postgres
+    # Render's free tier database is perfect for quick testing (free for 90 days)
+    plan: free
